@@ -1,4 +1,4 @@
-coffee -c include.coffee
+coffee -c utils.coffee
 coffee -c fbremix.coffee
 coffee -c caching/cache.coffee
 coffee -c modes/remixmode.coffee
