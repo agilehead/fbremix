@@ -7,7 +7,6 @@ class RemixMode
         
         
     run: () ->
-        @fbremix.stream.load()
 
 
     previousItem: () ->

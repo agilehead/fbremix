@@ -14,8 +14,7 @@
       BrowseMode.__super__.run.call(this);
       $j('body').addClass('mode-browse');
       this.view = this.getView(this.fbremix.location);
-      this.view.init();
-      return this.refresh();
+      return this.view.init();
     };
 
     BrowseMode.prototype.getView = function(location) {

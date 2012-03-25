@@ -3,8 +3,8 @@
 
   Stream = (function() {
 
-    function Stream(fbremix) {
-      this.fbremix = fbremix;
+    function Stream(FB) {
+      this.FB = FB;
       this.cursor = 0;
       this.stream = [];
     }
@@ -29,10 +29,10 @@
 
   this.FBRemixApp.Streams.Stream = Stream;
 
-  this.FBRemixApp.Streams.load = function(location) {
+  this.FBRemixApp.Streams.load = function(location, fbremix) {
     switch (location) {
       case 'home':
-        return new FBRemixApp.Streams.Feed();
+        return new FBRemixApp.Streams.Feed(fbremix);
     }
   };
 

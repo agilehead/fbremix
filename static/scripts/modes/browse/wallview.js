@@ -1,21 +1,47 @@
 (function() {
   var WallView;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   WallView = (function() {
 
     function WallView(mode) {
       this.mode = mode;
+      this.loadActors = __bind(this.loadActors, this);
     }
 
     WallView.prototype.init = function() {
+      var _this = this;
       $j('body').addClass('view-wall');
-      this.parser = this.mode.remixWindow.parser;
-      this.container = this.mode.remixWindow.viewContainer;
+      this.container = this.mode.fbremix.container;
       this.container.html('');
       this.container.append('<div class="left-pane span3"><ul id="actors-list"></ul></div>');
       this.actorsList = this.container.find('#actors-list');
       this.container.append('<div class="right-pane span9 row-fluid" id="post-container"></div>');
-      return this.postContainer = this.container.find('#post-container');
+      this.postContainer = this.container.find('#post-container');
+      this.stream = new FBRemixApp.Streams.Feed(this.mode.fbremix.FB);
+      return this.stream.load(function() {
+        return _this.stream.getSummary(function(err, results) {
+          return _this.loadActors(results);
+        });
+      });
+    };
+
+    WallView.prototype.displayItem = function() {};
+
+    WallView.prototype.loadActors = function(actors) {
+      var actor, image, name, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = actors.length; _i < _len; _i++) {
+        actor = actors[_i];
+        this.actorsList.append("                <li>                    <div class=\"profile-pic span1\"><img /></div>                    <h2 class=\"actor\"></h2>                    <br class=\"clear\" />                </li>");
+        this.mode.applyStyle(this.actorsList.children('li').last());
+        image = this.actorsList.find('li img').last();
+        name = this.actorsList.find('li h2.actor').last();
+        image.attr('src', actor.picture);
+        image.attr('alt', actor.name);
+        _results.push(name.html("" + actor.name));
+      }
+      return _results;
     };
 
     return WallView;
@@ -23,26 +49,6 @@
   })();
 
   /*
-          @loadActors()
-      
-      loadActors: () ->
-          getActors = @parser.getActors()
-          for getActor in getActors
-              @actorsList.append "
-                  <li>
-                      <div class=\"profile-pic span1\"><img /></div>
-                      <h2 class=\"actor\"></h2>
-                      <br class=\"clear\" />
-                  </li>"
-              @mode.applyStyle @actorsList.children('li').last()
-              image = @actorsList.find('li img').last()
-              name = @actorsList.find('li h2.actor').last()
-              getActor (actor) ->
-                  image.attr 'src', actor.getImage()
-                  image.attr 'alt', actor.name
-                  name.html "#{actor.name}"            
-                  
-          
       displayItem: () ->
           item = @mode.getCurrentItem()
           processedMedia = []

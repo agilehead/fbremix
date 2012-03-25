@@ -3,9 +3,8 @@ class FBRemix
     constructor: (@FB) ->
         @window = window
         @window.$j = jQuery.noConflict()
-        @cache = new FBRemixApp.Cache()
-        @stream = FBRemixApp.Streams.load 'home'
-
+        @cache = new FBRemixApp.Cache @
+        @stylist = new FBRemixApp.Styling.NormalStylist()
         
     setupAuthLinks: () ->
         #respond to clicks on the login and logout links
@@ -32,7 +31,14 @@ class FBRemix
             
     
     init: () ->
+        @setupDOM()
         @loadModes()
+
+    
+    setupDOM: () ->
+        $j('body').append '<div id="remix-container"></div>'
+        @container = $j('#remix-container')
+    
         
     loadModes: () ->
         for modeInfo in FBRemixApp.modes

@@ -11,9 +11,7 @@
       return this.cursor = 0;
     };
 
-    RemixMode.prototype.run = function() {
-      return this.fbremix.stream.load();
-    };
+    RemixMode.prototype.run = function() {};
 
     RemixMode.prototype.previousItem = function() {
       return this.fbremix.parser.previousItem();

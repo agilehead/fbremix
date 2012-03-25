@@ -7,8 +7,8 @@
       this.FB = FB;
       this.window = window;
       this.window.$j = jQuery.noConflict();
-      this.cache = new FBRemixApp.Cache();
-      this.stream = FBRemixApp.Streams.load('home');
+      this.cache = new FBRemixApp.Cache(this);
+      this.stylist = new FBRemixApp.Styling.NormalStylist();
     }
 
     FBRemix.prototype.setupAuthLinks = function() {
@@ -38,7 +38,13 @@
     };
 
     FBRemix.prototype.init = function() {
+      this.setupDOM();
       return this.loadModes();
+    };
+
+    FBRemix.prototype.setupDOM = function() {
+      $j('body').append('<div id="remix-container"></div>');
+      return this.container = $j('#remix-container');
     };
 
     FBRemix.prototype.loadModes = function() {

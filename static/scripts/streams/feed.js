@@ -10,7 +10,27 @@
       Feed.__super__.constructor.apply(this, arguments);
     }
 
-    Feed.prototype.load = function() {};
+    Feed.prototype.load = function(callback) {
+      var _this = this;
+      return this.FB.api('/me/home', function(response) {
+        _this.stream = response.data;
+        return callback();
+      });
+    };
+
+    Feed.prototype.getSummary = function(callback) {
+      var item, results, _i, _len, _ref;
+      results = [];
+      _ref = this.stream;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        item = _ref[_i];
+        results.push({
+          name: item.from.name,
+          picture: "https://graph.facebook.com/" + item.from.id + "/picture"
+        });
+      }
+      return callback(null, results);
+    };
 
     return Feed;
 

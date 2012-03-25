@@ -1,9 +1,9 @@
 class Stream
 
-    constructor: (@fbremix) ->
+    constructor: (@FB) ->
         @cursor = 0
         @stream = []
-        
+
     
     nextItem: () ->
         @cursor++
@@ -19,7 +19,7 @@ class Stream
 this.FBRemixApp.Streams = {}
 this.FBRemixApp.Streams.Stream = Stream
 
-this.FBRemixApp.Streams.load = (location) ->
+this.FBRemixApp.Streams.load = (location, fbremix) ->
     switch location
         when 'home'
-            new FBRemixApp.Streams.Feed()
+            new FBRemixApp.Streams.Feed(fbremix)

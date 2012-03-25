@@ -5,8 +5,7 @@ class BrowseMode extends FBRemixApp.Modes.RemixMode
         $j('body').addClass 'mode-browse'
         @view = @getView @fbremix.location
         @view.init()
-        @refresh()
-
+        
 
     getView: (location) ->
         new FBRemixApp.Modes.Browse.WallView(@)

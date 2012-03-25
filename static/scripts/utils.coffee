@@ -1,4 +1,5 @@
 this.FBRemixApp = {}
+this.FBRemixApp.Utils = {}
 
 class Loader
     constructor: () ->
@@ -28,4 +29,31 @@ class Loader
             
         window.document.getElementsByTagName('head')[0].appendChild(script)
 
-this.FBRemixApp.Loader = Loader
+class PeriodicEval
+    constructor: (predicate, interval, callback, timeOut) ->
+        timeOut = timeOut ? 5000
+        startTime = new Date().getTime()
+        f = () => 
+            if predicate()
+                if callbackDelay?
+                    setTimeout callback, 0
+                else
+                    callback()
+            else
+                timeNow = new Date().getTime()
+                if (timeNow - startTime) < timeOut
+                    setTimeout f, interval
+                else
+                    console.log "Timed out #{timeOut}ms."
+        f()
+
+this.FBRemixApp.Utils.Loader = Loader
+this.FBRemixApp.Utils.PeriodicEval = PeriodicEval
+
+this.FBRemixApp.Utils.random = (n) ->
+    Math.floor(Math.random() * n)
+
+this.FBRemixApp.Utils.pickRandom = (array) ->
+    rand = Math.floor(Math.random() * array.length)
+    return array[rand]
+

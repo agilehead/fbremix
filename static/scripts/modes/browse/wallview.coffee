@@ -4,9 +4,8 @@ class WallView
     
     init: () ->
         $j('body').addClass 'view-wall'
-        
-        @parser = @mode.remixWindow.parser        
-        @container = @mode.remixWindow.viewContainer
+
+        @container = @mode.fbremix.container
         
         @container.html ''
         
@@ -16,12 +15,17 @@ class WallView
         @container.append '<div class="right-pane span9 row-fluid" id="post-container"></div>'
         @postContainer = @container.find '#post-container'
 
-###
-        @loadActors()
+        @stream = new FBRemixApp.Streams.Feed(@mode.fbremix.FB)
+        @stream.load () =>        
+            @stream.getSummary (err, results) =>
+                @loadActors results
+
+
+    displayItem: () ->
+
     
-    loadActors: () ->
-        getActors = @parser.getActors()
-        for getActor in getActors
+    loadActors: (actors) =>
+        for actor in actors
             @actorsList.append "
                 <li>
                     <div class=\"profile-pic span1\"><img /></div>
@@ -31,12 +35,12 @@ class WallView
             @mode.applyStyle @actorsList.children('li').last()
             image = @actorsList.find('li img').last()
             name = @actorsList.find('li h2.actor').last()
-            getActor (actor) ->
-                image.attr 'src', actor.getImage()
-                image.attr 'alt', actor.name
-                name.html "#{actor.name}"            
-                
+            image.attr 'src', actor.picture
+            image.attr 'alt', actor.name
+            name.html "#{actor.name}"            
+            
         
+###
     displayItem: () ->
         item = @mode.getCurrentItem()
         processedMedia = []
