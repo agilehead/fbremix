@@ -1,0 +1,31 @@
+/* common */
+.align-left { text-align: left }
+.align-right { text-align: right }
+.clear { clear: both }
+
+body.fbremix { font-family: 'Droid Sans', 'Arial', sans-serif; background: #fff }
+    .fbremix .header { height: 72px; }
+        .fbremix .header h1 { font-size: 40px; margin: 24px 0 0 64px; font-family: 'Bevan', serif; color: #008500 }
+        .fbremix .header #auth-loggedout { margin: 12px 0 0 64px }
+        .fbremix .header #auth-loggedin { margin: 12px 0 0 64px; font-size: 18px }
+
+
+/* 
+    BROWSE MODE
+    ===========
+*/
+.fbremix.mode-browse .left-pane { float: left; min-height: 100%; max-width: 292px; margin: -96px 0 0 -20px !important; padding-top: 96px; background: #e6e6e6 }
+.fbremix.mode-browse .right-pane { float: left; margin-left: 0; margin: -64px 0 0 32px !important }
+
+/* Wall View */
+.fbremix.mode-browse.view-wall #actors-list { margin-left: 0 }
+    .fbremix.mode-browse.view-wall #actors-list li { clear: both; list-style: none; margin-bottom: 4px; }
+    .fbremix.mode-browse.view-wall #actors-list li h2.actor { max-width: 292px; overflow: hidden; white-space: nowrap; font-weight: lighter; font-size: 16px; font-family: 'Droid Sans', sans-serif }
+    .fbremix.mode-browse.view-wall #actors-list li .profile-pic { text-align: right; margin-left: 0; margin-right: 12px; }
+    .fbremix.mode-browse.view-wall #actors-list li .profile-pic img { max-width: 40px; max-height: 40px; }
+
+.fbremix.mode-browse.view-wall #post-container { }
+    .fbremix.mode-browse.view-wall #post-container .post-header .profile-pic { text-align: right; max-width: 200px; }
+    .fbremix.mode-browse.view-wall #post-container .post-header .profile-pic img { max-height: 180px; max-width: 180px; }
+    .fbremix.mode-browse.view-wall #post-container .post-header .text .message { margin-top: 12px; font-weight: bold }
+    .fbremix.mode-browse.view-wall #post-container .post-content { margin-top: 12px }
