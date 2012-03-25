@@ -5,20 +5,22 @@
 
     function Stream(FB) {
       this.FB = FB;
-      this.cursor = 0;
-      this.stream = [];
     }
 
     Stream.prototype.nextItem = function() {
-      return this.cursor++;
+      if (this.cursor < this.stream.length) return this.cursor++;
     };
 
     Stream.prototype.previousItem = function() {
-      return this.cursor--;
+      if (this.cursor > 0) return this.cursor--;
+    };
+
+    Stream.prototype.setCursor = function(i) {
+      return this.cursor = i;
     };
 
     Stream.prototype.getItem = function() {
-      return this.stream[this.cursor];
+      if (this.stream.length) return this.stream[this.cursor];
     };
 
     return Stream;

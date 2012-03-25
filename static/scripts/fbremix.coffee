@@ -6,6 +6,11 @@ class FBRemix
         @cache = new FBRemixApp.Cache @
         @stylist = new FBRemixApp.Styling.NormalStylist()
         
+        #set up keybindings
+        $j(document).bind('keydown', 'left', () => @previousItem())
+        $j(document).bind('keydown', 'right', () => @nextItem())
+        $j(document).bind('keydown', 'return', () => @nextItem())
+        
     setupAuthLinks: () ->
         #respond to clicks on the login and logout links
         $j('#auth-loginlink').click () =>
@@ -36,8 +41,8 @@ class FBRemix
 
     
     setupDOM: () ->
-        $j('body').append '<div id="remix-container"></div>'
-        @container = $j('#remix-container')
+        $j('body').append '<div id="remix-container" class="container-fluid"><div class="row-fluid"></div></div>'
+        @container = $j('#remix-container > .row-fluid')
     
         
     loadModes: () ->

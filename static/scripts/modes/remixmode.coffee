@@ -2,23 +2,17 @@ class RemixMode
 
 
     init: (@fbremix) ->
-        @activeStream = []
-        @cursor = 0
         
         
     run: () ->
 
 
     previousItem: () ->
-        @fbremix.parser.previousItem()
+        @view.previousItem()
 
 
     nextItem: () ->
-        @fbremix.parser.nextItem()
-
-
-    getItem: () ->
-        @fbremix.stream.getItem()
+        @view.nextItem()
 
 
     refresh: () ->

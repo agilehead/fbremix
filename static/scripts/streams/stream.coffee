@@ -1,20 +1,26 @@
 class Stream
 
     constructor: (@FB) ->
-        @cursor = 0
-        @stream = []
-
+    
     
     nextItem: () ->
-        @cursor++
-        
+        if @cursor < @stream.length
+            @cursor++
+
         
     previousItem: () ->
-        @cursor--
+        if @cursor > 0
+            @cursor--
+
+    
+    setCursor: (i) ->
+        @cursor = i
 
 
     getItem: () ->
-        return @stream[@cursor]
+        if @stream.length
+            return @stream[@cursor]
+
 
 this.FBRemixApp.Streams = {}
 this.FBRemixApp.Streams.Stream = Stream

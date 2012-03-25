@@ -17,58 +17,107 @@ class WallView
 
         @stream = new FBRemixApp.Streams.Feed(@mode.fbremix.FB)
         @stream.load () =>        
-            @stream.getSummary (err, results) =>
+            @stream.getItems (err, results) =>
                 @loadActors results
+                @refreshActors()
+                
+                
+    previousItem: () =>
+        @stream.previousItem()
+        @refreshActors()
+        @displayItem()
 
 
-    displayItem: () ->
+    nextItem: () =>
+        @stream.nextItem()
+        @refreshActors()
+        @displayItem()
 
     
-    loadActors: (actors) =>
-        for actor in actors
+    loadActors: (results) =>
+        i = 0        
+        for item in results
             @actorsList.append "
-                <li>
+                <li style=\"display:none\">
                     <div class=\"profile-pic span1\"><img /></div>
                     <h2 class=\"actor\"></h2>
-                    <br class=\"clear\" />
                 </li>"
-            @mode.applyStyle @actorsList.children('li').last()
-            image = @actorsList.find('li img').last()
-            name = @actorsList.find('li h2.actor').last()
-            image.attr 'src', actor.picture
-            image.attr 'alt', actor.name
-            name.html "#{actor.name}"            
             
+            li = @actorsList.children('li').last()
+            li.data 'position', i
+            @mode.applyStyle li
+            image = li.find('img').last()
+            name = li.find('h2.actor').last()
+            image.attr 'src', item.from.picture
+            image.attr 'alt', item.from.name
+            name.html "#{item.from.name}"
+            li.click do (i) =>
+                () =>
+                    @stream.cursor = i
+                    @refreshActors()
+            i = i + 1
         
-###
-    displayItem: () ->
-        item = @mode.getCurrentItem()
-        processedMedia = []
-    
-        @postContainer.html '<div class="post"></div>'
-        post = @postContainer.children('.post').last()
-        
-        #Heading container
-        post.append "
-            <div class=\"post-header row-fluid\">
-                <div class=\"profile-pic span4\">
-                    <img />
-                </div>
-                <div class=\"text span8\"></div>
-            </div>"
 
-        #Heading profile picture
-        postHeader = post.children('.post-header').last()
-        profilePic = postHeader.find 'img'
+    refreshActors: () ->
+        @actorsList.children('li').removeClass 'selected'
+        lesser = @actorsList.children('li').filter (index) => 
+            console.log "#{index} - #{@stream.cursor}"
+            index < @stream.cursor        
+        lesser.hide()
         
-        item.getActor (actor) =>
-            profilePic.attr 'src', actor.getImage()
-            profilePic.attr 'alt', actor.name
+        shown = @actorsList.children('li').not(lesser)
+        shown.show()
+        shown.first().addClass 'selected'
+
+        
+    displayItem: () ->
+        return
+        @stream.getItemDetails (err, item) =>
             
-        #Heading text.
-        textHeader = postHeader.find '.text'
-        @displayHeading item, textHeader, { processedMedia: processedMedia }
+            processedMedia = []
+    
+            @postContainer.html '<div class="post"></div>'
+            post = @postContainer.children('.post').last()
         
+            #Heading container
+            post.append "
+                <div class=\"post-header row-fluid\">
+                    <div class=\"profile-pic span4\">
+                        <img />
+                    </div>
+                    <div class=\"text span8\"></div>
+                </div>"
+
+            #Heading profile picture
+            postHeader = post.children('.post-header').last()
+            profilePic = postHeader.find 'img'
+            
+            item.getActor (actor) =>
+                profilePic.attr 'src', actor.getImage()
+                profilePic.attr 'alt', actor.name
+                
+            #Heading text.
+            textHeader = postHeader.find '.text'
+            @displayHeading item, textHeader, { processedMedia: processedMedia }
+
+
+    displayHeading: (item, renderTo, context) ->
+
+        item.getHeading (heading) =>
+            item.getActor (actor) =>
+                renderTo.append "<h2 class=\"font-size-largest\"></h2>"
+                actorElem = renderTo.children('h2').last()
+                actorElem.html actor.name
+                @mode.applyStyle actorElem
+
+                message = $j.trim(heading.replace actor.name, '')
+                if message
+                    renderTo.append "<div class=\"message font-size-larger color-random\">#{message}</div>"
+                    @mode.applyStyle renderTo.find('.message').last()
+
+
+        
+        ###
         #Rest of everything
         post.append "<div class=\"post-content span12 row-fluid\"></div>"
         postContent = post.children('div').last()
@@ -92,21 +141,6 @@ class WallView
                 @displayAttachments story, subStoriesDiv, { processedMedia, processedMedia }
                 @displayMessageBody story, subStoriesDiv, { processedMedia: processedMedia }
                 @displayComments story, subStoriesDiv, { processedMedia: processedMedia }
-
-
-    displayHeading: (item, renderTo, context) ->
-
-        item.getHeading (heading) =>
-            item.getActor (actor) =>
-                renderTo.append "<h2 class=\"font-size-largest\"></h2>"
-                actorElem = renderTo.children('h2').last()
-                actorElem.html actor.name
-                @mode.applyStyle actorElem
-
-                message = $j.trim(heading.replace actor.name, '')
-                if message
-                    renderTo.append "<div class=\"message font-size-larger color-random\">#{message}</div>"
-                    @mode.applyStyle renderTo.find('.message').last()
 
         
     displayMessageBody: (item, renderTo, context) ->

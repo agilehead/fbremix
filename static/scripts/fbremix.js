@@ -4,11 +4,21 @@
   FBRemix = (function() {
 
     function FBRemix(FB) {
+      var _this = this;
       this.FB = FB;
       this.window = window;
       this.window.$j = jQuery.noConflict();
       this.cache = new FBRemixApp.Cache(this);
       this.stylist = new FBRemixApp.Styling.NormalStylist();
+      $j(document).bind('keydown', 'left', function() {
+        return _this.previousItem();
+      });
+      $j(document).bind('keydown', 'right', function() {
+        return _this.nextItem();
+      });
+      $j(document).bind('keydown', 'return', function() {
+        return _this.nextItem();
+      });
     }
 
     FBRemix.prototype.setupAuthLinks = function() {
@@ -43,8 +53,8 @@
     };
 
     FBRemix.prototype.setupDOM = function() {
-      $j('body').append('<div id="remix-container"></div>');
-      return this.container = $j('#remix-container');
+      $j('body').append('<div id="remix-container" class="container-fluid"><div class="row-fluid"></div></div>');
+      return this.container = $j('#remix-container > .row-fluid');
     };
 
     FBRemix.prototype.loadModes = function() {

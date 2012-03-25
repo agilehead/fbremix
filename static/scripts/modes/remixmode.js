@@ -7,22 +7,16 @@
 
     RemixMode.prototype.init = function(fbremix) {
       this.fbremix = fbremix;
-      this.activeStream = [];
-      return this.cursor = 0;
     };
 
     RemixMode.prototype.run = function() {};
 
     RemixMode.prototype.previousItem = function() {
-      return this.fbremix.parser.previousItem();
+      return this.view.previousItem();
     };
 
     RemixMode.prototype.nextItem = function() {
-      return this.fbremix.parser.nextItem();
-    };
-
-    RemixMode.prototype.getItem = function() {
-      return this.fbremix.stream.getItem();
+      return this.view.nextItem();
     };
 
     RemixMode.prototype.refresh = function() {
