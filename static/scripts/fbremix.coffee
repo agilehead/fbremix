@@ -11,12 +11,17 @@ class FBRemix
         $j(document).bind('keydown', 'right', () => @nextItem())
         $j(document).bind('keydown', 'return', () => @nextItem())
         
+        @setupAuthLinks()
+        
     setupAuthLinks: () ->
         #respond to clicks on the login and logout links
         $j('#auth-loginlink').click () =>
-            @FB.login()
+            @FB.login (() ->), { scope: 'read_stream' } 
         $j('#auth-logoutlink').click () =>
             @FB.logout()
+            $j('#remix-container').remove()
+
+            
 
         
     onAuthStatusChange: (response) ->
@@ -41,6 +46,7 @@ class FBRemix
 
     
     setupDOM: () ->
+        $j('#remix-container').remove()
         $j('body').append '<div id="remix-container" class="container-fluid"><div class="row-fluid"></div></div>'
         @container = $j('#remix-container > .row-fluid')
     

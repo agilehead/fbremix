@@ -19,15 +19,19 @@
       $j(document).bind('keydown', 'return', function() {
         return _this.nextItem();
       });
+      this.setupAuthLinks();
     }
 
     FBRemix.prototype.setupAuthLinks = function() {
       var _this = this;
       $j('#auth-loginlink').click(function() {
-        return _this.FB.login();
+        return _this.FB.login((function() {}), {
+          scope: 'read_stream'
+        });
       });
       return $j('#auth-logoutlink').click(function() {
-        return _this.FB.logout();
+        _this.FB.logout();
+        return $j('#remix-container').remove();
       });
     };
 
@@ -53,6 +57,7 @@
     };
 
     FBRemix.prototype.setupDOM = function() {
+      $j('#remix-container').remove();
       $j('body').append('<div id="remix-container" class="container-fluid"><div class="row-fluid"></div></div>');
       return this.container = $j('#remix-container > .row-fluid');
     };

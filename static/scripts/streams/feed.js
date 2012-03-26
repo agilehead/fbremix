@@ -29,7 +29,7 @@
       var _this = this;
       url = (_ref = this.nextPage) != null ? _ref : '/me/home';
       return this.FB.api(url, {
-        limit: 200
+        limit: 60
       }, function(response) {
         var func, i, item, _i, _j, _len, _len2, _ref2, _ref3, _ref4;
         if ((_ref2 = response.data) != null ? _ref2.length : void 0) {
