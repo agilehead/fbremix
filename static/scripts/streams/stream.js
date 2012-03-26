@@ -7,7 +7,9 @@
     function Stream(FB) {
       this.FB = FB;
       this.getItemDetails = __bind(this.getItemDetails, this);
-      this.getItems = __bind(this.getItems, this);
+      this.events = {};
+      this.stream = [];
+      this.cursor = 0;
     }
 
     Stream.prototype.nextItem = function() {
@@ -20,10 +22,6 @@
 
     Stream.prototype.setCursor = function(i) {
       if (i >= 0 && i < this.stream.length) return this.cursor = i;
-    };
-
-    Stream.prototype.getItems = function(callback) {
-      return callback(null, this.stream);
     };
 
     Stream.prototype.getItem = function(callback) {

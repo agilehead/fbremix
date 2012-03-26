@@ -18,12 +18,15 @@ class WallView
         @postContainer = @container.find '#post-container'
 
         @stream = new FBRemixApp.Streams.Feed(@mode.fbremix.FB)
-        @stream.load () =>        
-            @stream.getItems (err, results) =>
-                @loadActors results
-                @refreshActors()
-                @displayItem()
+
+        @stream.onLoadMore () =>
+            @loadActors()
+            
+        @stream.loadMore () =>        
+            @refreshActors()
+            @displayItem()
                 
+
     previousItem: () =>
         @stream.previousItem()
         @refreshActors()
@@ -35,10 +38,13 @@ class WallView
         @refreshActors()
         @displayItem()
 
+
     
-    loadActors: (results) =>
+
+    
+    loadActors: () =>        
         i = 0        
-        for item in results
+        for item in @stream.stream
             @actorsList.append "
                 <li style=\"display:none\">
                     <div class=\"profile-pic\"><img /></div>
@@ -103,36 +109,37 @@ class WallView
         
         @stream.getItemDetails (err, item) =>
 
-            processedMedia = []
-    
-            @postContainer.html '<div class="post"></div>'
-            post = @postContainer.children('.post').last()
-        
-            #Heading container
-            post.append "
-                <div class=\"post-header row-fluid\">
-                    <div class=\"profile-pic\">
-                        <img />
-                    </div>
-                    <div class=\"text span8\"></div>
-                </div>
-                <div class=\"post-content\"></div>
-                <div class=\"post-feedback\"></div>"
-
-            #Heading profile picture
-            postHeader = post.children('.post-header').last()
-            
-            profilePic = postHeader.find 'img'            
-            profilePic.attr 'src', item.from._data.picture + "?type=large"
+            if item.loadFullItemAsync?
+                item.loadFullItemAsync () =>
+                            
+                    @postContainer.html '<div class="post"></div>'
+                    post = @postContainer.children('.post').last()
                 
-            textHeader = postHeader.find '.text'
-            @displayHeading item, textHeader, { processedMedia: processedMedia }
-            
-            postContent = post.children('.post-content').last()
-            @displayContent item, postContent, { processedMedia: processedMedia }
-            
-            postFeedback = post.children('.post-feedback').last()
-            @displayFeedback item, postFeedback, { processedMedia: processedMedia }
+                    #Heading container
+                    post.append "
+                        <div class=\"post-header row-fluid\">
+                            <div class=\"profile-pic\">
+                                <img />
+                            </div>
+                            <div class=\"text span8\"></div>
+                        </div>
+                        <div class=\"post-content\"></div>
+                        <div class=\"post-feedback\"></div>"
+
+                    #Heading profile picture
+                    postHeader = post.children('.post-header').last()
+                    
+                    profilePic = postHeader.find 'img'            
+                    profilePic.attr 'src', item.from._data.picture + "?type=large"
+                        
+                    textHeader = postHeader.find '.text'
+                    @displayHeading item, textHeader, { processedMedia: [] }
+                    
+                    postContent = post.children('.post-content').last()
+                    @displayContent item, postContent, { processedMedia: [] }
+                    
+                    postFeedback = post.children('.post-feedback').last()
+                    @displayFeedback item, postFeedback, { processedMedia: [] }
             
             
 
@@ -164,7 +171,9 @@ class WallView
                 messageElem = renderTo.children('.message').last()
 
                 if @getLinkType(contentText) == 'image'
-                    renderTo.append "<div class=\"picture\"><img src=\"#{contentText}\" /></div>"
+                    if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
+                        renderTo.append "<div class=\"picture\"><img src=\"#{contentText}\" /></div>"
+                        context.processedMedia.push { type: 'image', url: contentText }
                     
             else
                 renderTo.append "<blockquote class=\"message font-family-quote\">#{contentText}</blockquote>"
@@ -179,14 +188,46 @@ class WallView
                 
             @mode.applyStyle messageElem
 
-        if item._data.loadPictureAsync?
-            item._data.loadPictureAsync () =>
-                renderTo.append "<div class=\"picture\"><img src=\"#{item._data.picture}\" /></div>"
+        if item._data.loadLinkDetailsAsync?
+            item._data.loadLinkDetailsAsync () =>
+                if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
+                    renderTo.append "<div class=\"picture\"><img src=\"#{item._data.link.picture}\" /></div>"
+                    context.processedMedia.push { type: 'image', url: contentText }
+                    
+                    
+        #do not do this if we have already loaded 
     
-        if item.loadRelatedAsync?
-            item.loadRelatedAsync () =>
+        if item.loadRelatedDetailsAsync?
+            item.loadRelatedDetailsAsync () =>
                 if item._related.images?.length
-                    renderTo.append "<div class=\"picture\"><img src=\"#{item._related.images[0].source}\" /></div>"
+                    if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
+                        renderTo.append "<div class=\"picture\"><img src=\"#{item._related.images[0].source}\" /></div>"
+                        context.processedMedia.push { type: 'image', url: contentText }
+        
+        if item.type == 'video'
+            #youtube
+            for regex in [/https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/, /https?:\/\/www\.youtube\.com\/v\/(\w+)/]
+                res = item.source.match(regex)
+                if res
+                    break
+
+            videoId = res[1]
+            embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
+            renderTo.append embed
+
+    
+    displayFeedback: (item, renderTo, context) ->
+        item = item._full ? item
+        if item.comments?.data?.length
+            renderTo.append "<div class=\"comments-container\"><ul></ul></div>"
+            commentList = renderTo.find('.comments-container ul').last()
+            for comment in item.comments.data
+                commentList.append "<li><div class=\"row\"></div></li>"
+                rowDiv = commentList.find('li .row').last()
+                rowDiv.append "<div class=\"commenter-image span1 align-right\"><img src=\"https://graph.facebook.com/#{comment.from.id}/picture\" /></div>"
+                rowDiv.append "<div class=\"span4\"><h6>#{comment.from.name}</h6><div class=\"message\">#{comment.message}</div>"
+                rowDiv.append '<div class="clear"></div>'
+        
         
     isLink: (text) ->
         text.split(' ').length == 1 and /^http/.test text
@@ -200,6 +241,10 @@ class WallView
             if ext == '.jpg' or '.png' or '.gif' or '.bmp' 
                 return 'image'
                 
+    
+    isProcessed: (list, media) ->
+        matches = (item for item in list when item.type == media.type and item.url == media.url)
+        if matches.length then true else false
     
 
     getMedia: (url) ->
@@ -240,118 +285,5 @@ class WallView
                 return 'font-family-quote'
         
         
-        ###
-        #Rest of everything
-        post.append "<div class=\"post-content span12 row-fluid\"></div>"
-        postContent = post.children('div').last()
-        @displayMessageBody item, postContent, { processedMedia: processedMedia }        
-        @displayAttachments item, postContent, { processedMedia, processedMedia }    
-        @displayComments item, postContent, { processedMedia, processedMedia }
-        
-        if item.subStories?.length
-            postContent.append '<div class="sub-stories"></div>'
-            subStoriesDiv = postContent.find('.sub-stories')
-            
-            for story in item.subStories            
-                ##if story.attachments?.length and @imageBlockHasMedia story                        
-                    @displayImageBlock_Item story, subStoriesDiv, { processedMedia: processedMedia }
-                    @displayMessageBody story, subStoriesDiv, { processedMedia: processedMedia }
-                    @displayHeading story, subStoriesDiv, { processedMedia: processedMedia }
-                    @displayImageBlock_Block story, subStoriesDiv, { processedMedia: processedMedia }
-                    @displayComments story, subStoriesDiv, { processedMedia: processedMedia }
-                else##
-                @displayHeading story, subStoriesDiv, { processedMedia: processedMedia }
-                @displayAttachments story, subStoriesDiv, { processedMedia, processedMedia }
-                @displayMessageBody story, subStoriesDiv, { processedMedia: processedMedia }
-                @displayComments story, subStoriesDiv, { processedMedia: processedMedia }
-
-        
-    displayMessageBody: (item, renderTo, context) ->
-        if item.getMessageBody?
-            item.getMessageBody (messageBody) =>
-                if messageBody?
-                    fontSizeClass = @mode.resizeByLength messageBody.text
-                    if messageBody.type is 'html'
-                        $j("<div class=\"message-body palette-light #{fontSizeClass} font-style-auto\">#{messageBody.html}</div>").insertAfter renderTo.children('h2.main-heading').first()
-                    else if messageBody.type is 'text'
-                        $j("<div class=\"message-body palette-light #{fontSizeClass} font-style-auto\">#{messageBody.text}</div>").insertAfter renderTo.children('h2.main-heading').first()
-                        
-                    @mode.applyStyle renderTo.children('div').last()
-
-                    messageBody = renderTo.children('.message-body').first()
-                    if messageBody.media?
-                        for media in messageBody.media
-                            $j(media.content).insertAfter messageBody
-
-
-    displayAttachments: (item, renderTo, context) ->
-        if item.getAttachments?
-            item.getAttachments (attachments) =>
-                renderTo.append('<div class="attachments"></div>')
-                attachmentDiv = renderTo.children('.attachments').last()
-        
-                if attachments?.length
-                    attachment = attachments[0]
-                    @displayImageBlock_Item attachment, attachmentDiv, context
-                    @displayImageBlock_Block attachment, attachmentDiv, context
-                    @displayImageAndText attachment, attachmentDiv, context
-                    @displayTextual attachment, attachmentDiv, context                
-
-    
-    imageBlockHasMedia: (attachment) ->
-        return attachment.imageBlock?.contentType == 'image' or attachment.imageBlock?.contentType == 'video'
-    
-    
-    displayImageBlock_Item: (attachment, renderTo, context) ->
-        if attachment.imageBlock?
-            if attachment.imageBlock?.contentType == 'image'
-                renderTo.append "<div class=\"attachment-media\"></div>"
-                imgDiv = renderTo.children('div').last()
-                attachment.imageBlock.getImage (image) ->
-                    imgDiv.append "'<img src=\"#{image}\" />"
-                    
-
-    displayImageBlock_Block: (attachment, renderTo, context) ->
-        if attachment.imageBlock?
-            renderTo.append "<div class=\"ui-image-block row\">
-                <div class=\"span1\"><img src=\"#{attachment.imageBlock.getImage()}\" /></div><div class=\"span6\">
-                <h6>#{attachment.imageBlock.title}</h6><p>#{attachment.imageBlock.media[0].content}</p><p>#{attachment.imageBlock.desc}</p></div></div>"    
-
-
-    
-    displayImageAndText: (attachment, renderTo, context) ->
-        if attachment.imageAndText?
-            renderTo.append "<div class=\"attachment-media\"><img src=\"#{attachment.imageAndText.getImage()}\" /></div>"
-
-            renderTo.append '<div class=\"attachment-media-info\"></div>'
-            infoSectionDev = renderTo.children('div').last()
-
-            if attachment.imageAndText.title?
-                infoSectionDev.append "<h6>#{attachment.imageAndText.title}</h6>"
-                
-            if attachment.imageAndText.caption?
-                infoSectionDev.append "<h6>#{attachment.imageAndText.caption}</h6>"        
-    
-
-    displayTextual: (attachment, renderTo, context) ->
-        if attachment.textual?
-            renderTo.append "<div class=\"font-size-medium\">#{attachment.textual.title}</div>"
-            renderTo.append "<div class=\"font-size-medium\">#{attachment.textual.desc}</div>"
-    
-    
-    displayComments: (item, renderTo, context) ->
-        if item.getComments?
-            item.getComments (comments) =>
-                if comments?.length
-                    renderTo.append "<ul class=\"comment-list \"></ul>"
-                    commentDiv = renderTo.find('.comment-list')
-                    for comment in comments
-                        commentDiv.append "<li><div class=\"row\"></div></li>"
-                        rowDiv = commentDiv.find('li .row').last()
-                        rowDiv.append "<div class=\"commenter-image span1 align-right\"><img src=\"#{comment.getImage()}\" /></div>"
-                        rowDiv.append "<div class=\"span4\"><h6>#{comment.actor}</h6><div>#{comment.content}</div>"
-                        rowDiv.append '<div style="clear:both"></div>'
-###
-
 this.FBRemixApp.Modes.Browse.WallView = WallView
 

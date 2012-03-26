@@ -2,49 +2,83 @@ class Feed extends FBRemixApp.Streams.Stream
     
     constructor: (FB) ->        
         super(FB)
+        @events.loadMore = []
+        
+    
+    nextItem: () ->
+        super()
+        if (@stream.length - @cursor) < 10
+            @loadMore()
+    
+    
+    loadMore: (callback) =>
+        url = @nextPage ? '/me/home'
 
-
-    load: (callback, currentItem) =>
-        @FB.api '/me/home', (response) =>
+        @FB.api url, { limit: 60 }, (response) =>
             if response.data?.length
-                @stream = response.data
-
-                if not currentItem?
-                    @cursor = 0
+                @stream.push.apply @stream, response.data
 
                 i = 0
-                for item in @stream
-                    @fetchItemDetails item
-                    if currentItem?
-                        if item.id == currentItem.id
-                            @cursor = i
+                for item in response.data
+                    @setItemDetails item                    
                     i++
-                                            
+                    
+                for func in @events.loadMore
+                    func()
+                    
                 callback()
+                
+                if response.paging?
+                    @nextPage = response.paging.next
 
             else
                 console.log 'stream.data has no items.'
 
-    fetchItemDetails: (item) =>
+    onLoadMore: (func) =>
+        @events.loadMore.push func
+
+
+    setItemDetails: (item) =>
+        item.loadFullItemAsync = @loadFullItemAsync item
+    
         item.from._data = {}
         item.from._data.picture = "https://graph.facebook.com/#{item.from.id}/picture"
 
-        item._data = {}
+        item._data = { }
         if item.type == 'photo'
             if item.picture?
+                item._data.link = { }
                 src = item.picture
-                item._data.picture = src.replace '_s.', '_n.'
-                item._data.loadPictureAsync = @loadPictureAsync item
+                item._data.link.picture = src.replace '_s.', '_n.'
+                item._data.loadLinkDetailsAsync = @loadLinkDetailsAsync item
             else
-                item._data.loadPictureAsync = @loadPictureAsync item
+                item._data.loadLinkDetailsAsync = @loadLinkDetailsAsync item
          
          #if id has an underscore, there is a linked story. eg: 3490394850_394850345
          ids = item.id.split('_')
          if ids.length == 2            
-            item.loadRelatedAsync = @loadRelatedAsync ids[1], item
+            item.loadRelatedDetailsAsync = @loadRelatedDetailsAsync ids[1], item
+           
+           
+    loadFullItemAsync: (item) =>
+        return (callback) =>
+            if item._full?
+                callback()
+            else
+                @fetchFullItem item, callback
+         
+         
+    fetchFullItem: (item, callback) =>
+        @FB.api "/#{item.id}", (response) =>
+            if (not response) or (not response.id)
+                item._full = undefined
+                callback()
+            else
+                item._full = response
+                callback()
             
             
-    loadRelatedAsync: (id, item) =>
+    loadRelatedDetailsAsync: (id, item) =>
         return (callback) =>
             if item._related?
                 callback()
@@ -58,18 +92,20 @@ class Feed extends FBRemixApp.Streams.Stream
             callback()
 
 
-    loadPictureAsync: (item) =>
+    loadLinkDetailsAsync: (item) =>
         return (callback) =>
-            if item._data.picture?
+            if item._data.link?
                 callback()
             else
                 @fetchLinkDetails item, callback
 
 
     fetchLinkDetails: (item, callback) =>
-        @FB.api "/#{item.object_id}", (response) =>
-            item._data.picture = response.images[0].source
-            callback()
+        @FB.api "/#{item.object_id}", (response) =>            
+            if response.images? and response.images.length
+                item._data.link = { }
+                item._data.link.picture = response.images[0].source
+                callback()
             
     
 

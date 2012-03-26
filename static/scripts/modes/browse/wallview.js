@@ -23,12 +23,12 @@
       this.container.append('<div class="right-pane span9 row-fluid" id="post-container"></div>');
       this.postContainer = this.container.find('#post-container');
       this.stream = new FBRemixApp.Streams.Feed(this.mode.fbremix.FB);
-      return this.stream.load(function() {
-        return _this.stream.getItems(function(err, results) {
-          _this.loadActors(results);
-          _this.refreshActors();
-          return _this.displayItem();
-        });
+      this.stream.onLoadMore(function() {
+        return _this.loadActors();
+      });
+      return this.stream.loadMore(function() {
+        _this.refreshActors();
+        return _this.displayItem();
       });
     };
 
@@ -44,13 +44,14 @@
       return this.displayItem();
     };
 
-    WallView.prototype.loadActors = function(results) {
-      var i, image, item, li, name, _i, _len, _results;
+    WallView.prototype.loadActors = function() {
+      var i, image, item, li, name, _i, _len, _ref, _results;
       var _this = this;
       i = 0;
+      _ref = this.stream.stream;
       _results = [];
-      for (_i = 0, _len = results.length; _i < _len; _i++) {
-        item = results[_i];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        item = _ref[_i];
         this.actorsList.append("                <li style=\"display:none\">                    <div class=\"profile-pic\"><img /></div>                    <h2 class=\"actor\"></h2>                </li>");
         li = this.actorsList.children('li').last();
         li.data('position', i);
@@ -112,22 +113,29 @@
       var _this = this;
       this.mode.fbremix.newStylist();
       return this.stream.getItemDetails(function(err, item) {
-        var post, postContent, postHeader, processedMedia, profilePic, textHeader;
-        processedMedia = [];
-        _this.postContainer.html('<div class="post"></div>');
-        post = _this.postContainer.children('.post').last();
-        post.append("                <div class=\"post-header row-fluid\">                    <div class=\"profile-pic\">                        <img />                    </div>                    <div class=\"text span8\"></div>                </div>                <div class=\"post-content\"></div>");
-        postHeader = post.children('.post-header').last();
-        profilePic = postHeader.find('img');
-        profilePic.attr('src', item.from._data.picture + "?type=large");
-        textHeader = postHeader.find('.text');
-        _this.displayHeading(item, textHeader, {
-          processedMedia: processedMedia
-        });
-        postContent = post.children('.post-content').last();
-        return _this.displayContent(item, postContent, {
-          processedMedia: processedMedia
-        });
+        if (item.loadFullItemAsync != null) {
+          return item.loadFullItemAsync(function() {
+            var post, postContent, postFeedback, postHeader, profilePic, textHeader;
+            _this.postContainer.html('<div class="post"></div>');
+            post = _this.postContainer.children('.post').last();
+            post.append("                        <div class=\"post-header row-fluid\">                            <div class=\"profile-pic\">                                <img />                            </div>                            <div class=\"text span8\"></div>                        </div>                        <div class=\"post-content\"></div>                        <div class=\"post-feedback\"></div>");
+            postHeader = post.children('.post-header').last();
+            profilePic = postHeader.find('img');
+            profilePic.attr('src', item.from._data.picture + "?type=large");
+            textHeader = postHeader.find('.text');
+            _this.displayHeading(item, textHeader, {
+              processedMedia: []
+            });
+            postContent = post.children('.post-content').last();
+            _this.displayContent(item, postContent, {
+              processedMedia: []
+            });
+            postFeedback = post.children('.post-feedback').last();
+            return _this.displayFeedback(item, postFeedback, {
+              processedMedia: []
+            });
+          });
+        }
       });
     };
 
@@ -151,7 +159,7 @@
     };
 
     WallView.prototype.displayContent = function(item, renderTo, context) {
-      var contentText, fontSize, messageElem;
+      var contentText, embed, fontSize, messageElem, regex, res, videoId, _i, _len, _ref;
       var _this = this;
       contentText = item.message;
       if (contentText != null) {
@@ -159,7 +167,16 @@
           renderTo.append("<blockquote class=\"message font-family-quote font-size-larger\">" + contentText + "</blockquote>");
           messageElem = renderTo.children('.message').last();
           if (this.getLinkType(contentText) === 'image') {
-            renderTo.append("<div class=\"picture\"><img src=\"" + contentText + "\" /></div>");
+            if (!this.isProcessed(context.processedMedia, {
+              type: 'image',
+              url: contentText
+            })) {
+              renderTo.append("<div class=\"picture\"><img src=\"" + contentText + "\" /></div>");
+              context.processedMedia.push({
+                type: 'image',
+                url: contentText
+              });
+            }
           }
         } else {
           renderTo.append("<blockquote class=\"message font-family-quote\">" + contentText + "</blockquote>");
@@ -170,18 +187,67 @@
         if (FBRemixApp.Utils.random(2) === 1) messageElem.addClass('color-random');
         this.mode.applyStyle(messageElem);
       }
-      if (item._data.loadPictureAsync != null) {
-        item._data.loadPictureAsync(function() {
-          return renderTo.append("<div class=\"picture\"><img src=\"" + item._data.picture + "\" /></div>");
-        });
-      }
-      if (item.loadRelatedAsync != null) {
-        return item.loadRelatedAsync(function() {
-          var _ref;
-          if ((_ref = item._related.images) != null ? _ref.length : void 0) {
-            return renderTo.append("<div class=\"picture\"><img src=\"" + item._related.images[0].source + "\" /></div>");
+      if (item._data.loadLinkDetailsAsync != null) {
+        item._data.loadLinkDetailsAsync(function() {
+          if (!_this.isProcessed(context.processedMedia, {
+            type: 'image',
+            url: contentText
+          })) {
+            renderTo.append("<div class=\"picture\"><img src=\"" + item._data.link.picture + "\" /></div>");
+            return context.processedMedia.push({
+              type: 'image',
+              url: contentText
+            });
           }
         });
+      }
+      if (item.loadRelatedDetailsAsync != null) {
+        item.loadRelatedDetailsAsync(function() {
+          var _ref;
+          if ((_ref = item._related.images) != null ? _ref.length : void 0) {
+            if (!_this.isProcessed(context.processedMedia, {
+              type: 'image',
+              url: contentText
+            })) {
+              renderTo.append("<div class=\"picture\"><img src=\"" + item._related.images[0].source + "\" /></div>");
+              return context.processedMedia.push({
+                type: 'image',
+                url: contentText
+              });
+            }
+          }
+        });
+      }
+      if (item.type === 'video') {
+        _ref = [/https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/, /https?:\/\/www\.youtube\.com\/v\/(\w+)/];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          regex = _ref[_i];
+          res = item.source.match(regex);
+          if (res) break;
+        }
+        videoId = res[1];
+        embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></div>";
+        return renderTo.append(embed);
+      }
+    };
+
+    WallView.prototype.displayFeedback = function(item, renderTo, context) {
+      var comment, commentList, rowDiv, _i, _len, _ref, _ref2, _ref3, _ref4, _results;
+      item = (_ref = item._full) != null ? _ref : item;
+      if ((_ref2 = item.comments) != null ? (_ref3 = _ref2.data) != null ? _ref3.length : void 0 : void 0) {
+        renderTo.append("<div class=\"comments-container\"><ul></ul></div>");
+        commentList = renderTo.find('.comments-container ul').last();
+        _ref4 = item.comments.data;
+        _results = [];
+        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+          comment = _ref4[_i];
+          commentList.append("<li><div class=\"row\"></div></li>");
+          rowDiv = commentList.find('li .row').last();
+          rowDiv.append("<div class=\"commenter-image span1 align-right\"><img src=\"https://graph.facebook.com/" + comment.from.id + "/picture\" /></div>");
+          rowDiv.append("<div class=\"span4\"><h6>" + comment.from.name + "</h6><div class=\"message\">" + comment.message + "</div>");
+          _results.push(rowDiv.append('<div class="clear"></div>'));
+        }
+        return _results;
       }
     };
 
@@ -196,6 +262,26 @@
       if (res) {
         ext = res[1].toLowerCase();
         if (ext === '.jpg' || '.png' || '.gif' || '.bmp') return 'image';
+      }
+    };
+
+    WallView.prototype.isProcessed = function(list, media) {
+      var item, matches;
+      matches = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = list.length; _i < _len; _i++) {
+          item = list[_i];
+          if (item.type === media.type && item.url === media.url) {
+            _results.push(item);
+          }
+        }
+        return _results;
+      })();
+      if (matches.length) {
+        return true;
+      } else {
+        return false;
       }
     };
 
@@ -252,118 +338,6 @@
 
     WallView.prototype.getFontFamily = function(text, type) {
       if (type === 'quote') if (text.length < 300) return 'font-family-quote';
-      /*
-              #Rest of everything
-              post.append "<div class=\"post-content span12 row-fluid\"></div>"
-              postContent = post.children('div').last()
-              @displayMessageBody item, postContent, { processedMedia: processedMedia }        
-              @displayAttachments item, postContent, { processedMedia, processedMedia }    
-              @displayComments item, postContent, { processedMedia, processedMedia }
-              
-              if item.subStories?.length
-                  postContent.append '<div class="sub-stories"></div>'
-                  subStoriesDiv = postContent.find('.sub-stories')
-                  
-                  for story in item.subStories            
-                      ##if story.attachments?.length and @imageBlockHasMedia story                        
-                          @displayImageBlock_Item story, subStoriesDiv, { processedMedia: processedMedia }
-                          @displayMessageBody story, subStoriesDiv, { processedMedia: processedMedia }
-                          @displayHeading story, subStoriesDiv, { processedMedia: processedMedia }
-                          @displayImageBlock_Block story, subStoriesDiv, { processedMedia: processedMedia }
-                          @displayComments story, subStoriesDiv, { processedMedia: processedMedia }
-                      else##
-                      @displayHeading story, subStoriesDiv, { processedMedia: processedMedia }
-                      @displayAttachments story, subStoriesDiv, { processedMedia, processedMedia }
-                      @displayMessageBody story, subStoriesDiv, { processedMedia: processedMedia }
-                      @displayComments story, subStoriesDiv, { processedMedia: processedMedia }
-      
-              
-          displayMessageBody: (item, renderTo, context) ->
-              if item.getMessageBody?
-                  item.getMessageBody (messageBody) =>
-                      if messageBody?
-                          fontSizeClass = @mode.resizeByLength messageBody.text
-                          if messageBody.type is 'html'
-                              $j("<div class=\"message-body palette-light #{fontSizeClass} font-style-auto\">#{messageBody.html}</div>").insertAfter renderTo.children('h2.main-heading').first()
-                          else if messageBody.type is 'text'
-                              $j("<div class=\"message-body palette-light #{fontSizeClass} font-style-auto\">#{messageBody.text}</div>").insertAfter renderTo.children('h2.main-heading').first()
-                              
-                          @mode.applyStyle renderTo.children('div').last()
-      
-                          messageBody = renderTo.children('.message-body').first()
-                          if messageBody.media?
-                              for media in messageBody.media
-                                  $j(media.content).insertAfter messageBody
-      
-      
-          displayAttachments: (item, renderTo, context) ->
-              if item.getAttachments?
-                  item.getAttachments (attachments) =>
-                      renderTo.append('<div class="attachments"></div>')
-                      attachmentDiv = renderTo.children('.attachments').last()
-              
-                      if attachments?.length
-                          attachment = attachments[0]
-                          @displayImageBlock_Item attachment, attachmentDiv, context
-                          @displayImageBlock_Block attachment, attachmentDiv, context
-                          @displayImageAndText attachment, attachmentDiv, context
-                          @displayTextual attachment, attachmentDiv, context                
-      
-          
-          imageBlockHasMedia: (attachment) ->
-              return attachment.imageBlock?.contentType == 'image' or attachment.imageBlock?.contentType == 'video'
-          
-          
-          displayImageBlock_Item: (attachment, renderTo, context) ->
-              if attachment.imageBlock?
-                  if attachment.imageBlock?.contentType == 'image'
-                      renderTo.append "<div class=\"attachment-media\"></div>"
-                      imgDiv = renderTo.children('div').last()
-                      attachment.imageBlock.getImage (image) ->
-                          imgDiv.append "'<img src=\"#{image}\" />"
-                          
-      
-          displayImageBlock_Block: (attachment, renderTo, context) ->
-              if attachment.imageBlock?
-                  renderTo.append "<div class=\"ui-image-block row\">
-                      <div class=\"span1\"><img src=\"#{attachment.imageBlock.getImage()}\" /></div><div class=\"span6\">
-                      <h6>#{attachment.imageBlock.title}</h6><p>#{attachment.imageBlock.media[0].content}</p><p>#{attachment.imageBlock.desc}</p></div></div>"    
-      
-      
-          
-          displayImageAndText: (attachment, renderTo, context) ->
-              if attachment.imageAndText?
-                  renderTo.append "<div class=\"attachment-media\"><img src=\"#{attachment.imageAndText.getImage()}\" /></div>"
-      
-                  renderTo.append '<div class=\"attachment-media-info\"></div>'
-                  infoSectionDev = renderTo.children('div').last()
-      
-                  if attachment.imageAndText.title?
-                      infoSectionDev.append "<h6>#{attachment.imageAndText.title}</h6>"
-                      
-                  if attachment.imageAndText.caption?
-                      infoSectionDev.append "<h6>#{attachment.imageAndText.caption}</h6>"        
-          
-      
-          displayTextual: (attachment, renderTo, context) ->
-              if attachment.textual?
-                  renderTo.append "<div class=\"font-size-medium\">#{attachment.textual.title}</div>"
-                  renderTo.append "<div class=\"font-size-medium\">#{attachment.textual.desc}</div>"
-          
-          
-          displayComments: (item, renderTo, context) ->
-              if item.getComments?
-                  item.getComments (comments) =>
-                      if comments?.length
-                          renderTo.append "<ul class=\"comment-list \"></ul>"
-                          commentDiv = renderTo.find('.comment-list')
-                          for comment in comments
-                              commentDiv.append "<li><div class=\"row\"></div></li>"
-                              rowDiv = commentDiv.find('li .row').last()
-                              rowDiv.append "<div class=\"commenter-image span1 align-right\"><img src=\"#{comment.getImage()}\" /></div>"
-                              rowDiv.append "<div class=\"span4\"><h6>#{comment.actor}</h6><div>#{comment.content}</div>"
-                              rowDiv.append '<div style="clear:both"></div>'
-      */
     };
 
     return WallView;

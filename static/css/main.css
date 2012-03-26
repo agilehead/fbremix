@@ -33,3 +33,8 @@ body.fbremix { font-family: 'Droid Sans', 'Arial', sans-serif; background: #fff 
     .fbremix.mode-browse.view-wall #post-container .post-header .profile-pic img { max-height: 180px; max-width: 180px; }
     .fbremix.mode-browse.view-wall #post-container .post-header .text .story { margin-top: 12px; font-weight: bold }
     .fbremix.mode-browse.view-wall #post-container .post-content { margin-top: 12px }
+
+.fbremix.mode-browse.view-wall .comments-container { margin-top: 20px; }
+    .fbremix.mode-browse.view-wall .comments-container ul li { list-style: none; margin-bottom: 12px; }
+        .fbremix.mode-browse.view-wall .comments-container ul li h6 { font-size: 14px }    
+        .fbremix.mode-browse.view-wall .comments-container ul li .message { font-size: 12px }        

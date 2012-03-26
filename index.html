@@ -1,47 +1,68 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-   <title>FB Remix</title>
-   <link href="https://fbremixapp.appspot.com/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
-   <link href="https://fbremixapp.appspot.com/static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" media="screen" />
-   <link href="https://fbremixapp.appspot.com/static/css/main.css" rel="stylesheet" type="text/css" media="screen" />
-   <script type="text/javascript" src="https://fbremixapp.appspot.com/static/scripts/jquery.min.js"></script>
-   <script type="text/javascript" src="https://fbremixapp.appspot.com/static/bootstrap/js/bootstrap.min.js"></script>
-</head>
-<body class="fbremix_com">
-   <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="#">FB Remix</a>
-          <div class="nav-collapse">
-            <!-- <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-            </ul>-->
-          </div><!--/.nav-collapse -->
+<!DOCTYPE html>
+<html>
+      <head>
+           <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+           <title>FB Remix</title>
+           <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
+           <link href="/static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" media="screen" />
+           <link href="/static/css/main.css" rel="stylesheet" type="text/css" media="screen" />
+           <script type="text/javascript" src="/static/scripts/js/jquery.min.js"></script>
+           <script type="text/javascript" src="/static/scripts/js/include.js"></script>
+           <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+           <script type="text/javascript" src="/static/scripts/utils.js"></script>
+           <script type="text/javascript" src="/static/scripts/fbremix.js"></script>
+           <script type="text/javascript" src="/static/scripts/caching/cache.js"></script>
+           <script type="text/javascript" src="/static/scripts/streams/stream.js"></script>
+           <script type="text/javascript" src="/static/scripts/streams/feed.js"></script>
+           <script type="text/javascript" src="/static/scripts/modes/remixmode.js"></script>
+           <script type="text/javascript" src="/static/scripts/modes/browse/browsemode.js"></script>
+           <script type="text/javascript" src="/static/scripts/modes/browse/wallview.js"></script>
+           <script type="text/javascript" src="/static/scripts/styling/stylist.js"></script>                                 
+           <script type="text/javascript" src="/static/scripts/styling/normalstylist.js"></script>                                 
+      </head>
+    <body class="fbremix">
+        <div id="fb-root"></div>
+        <script>
+            loader = new FBRemixApp.Utils.Loader();
+            // Load the SDK Asynchronously
+            (function(d){
+                var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement('script'); js.id = id; js.async = true;
+                js.src = "//connect.facebook.net/en_US/all.js";
+                ref.parentNode.insertBefore(js, ref);
+            }(document));
+
+            // Init the SDK upon load
+            window.fbAsyncInit = function() {
+                window.fbremix = new FBRemixApp.FBRemix(FB)
+                FB.init({
+                    appId      : '209123965860574', // App ID
+                    channelUrl : '//'+window.location.hostname+'/channel', // Path to your Channel File
+                    status     : true, // check login status
+                    cookie     : true, // enable cookies to allow the server to access the session
+                    xfbml      : true  // parse XFBML
+                });
+
+            // listen for and handle auth.statusChange events
+                FB.Event.subscribe('auth.statusChange', function(response) {
+                    fbremix.onAuthStatusChange(response)
+                });
+            } 
+        </script>
+        
+        <div class="header">
+            <h1>FB Remix</h1>
+            <div id="auth-status">
+                <div id="auth-loggedout">
+                    <a href="#" class="btn btn-primary btn-large" id="auth-loginlink">Login to FaceBook</a>
+                </div>
+                <div id="auth-loggedin" style="display:none">
+                    <span id="auth-displayname"></span>  
+                    <a href="#" id="auth-logoutlink">logout</a>
+                </div>                
+            </div>
         </div>
-      </div>
-    </div>
-    
-     <div class="container">
-      {% if page %}
-         {% include page %}
-      {% else %}
-         {% include "main.html" %}
-      {% endif %}
-
-      <footer>
-        <p></p>
-      </footer>
-
-    </div> <!-- /container -->
- 
-</body>
+        <div class="fb-like" style="position:absolute; left:230px; top:20px; width: 140px" data-href="http://www.fbremix.com" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+    </body>
 </html>

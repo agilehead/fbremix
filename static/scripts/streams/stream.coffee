@@ -1,7 +1,10 @@
 class Stream
 
     constructor: (@FB) ->
-    
+        @events = {}
+        @stream = []
+        @cursor = 0
+        
     
     nextItem: () ->
         if @cursor < @stream.length
@@ -18,19 +21,16 @@ class Stream
             @cursor = i
 
 
-    getItems: (callback) =>
-        callback null, @stream
-
-
     getItem: (callback) ->
         if @stream.length
             callback @stream[@cursor]
 
 
-    getItemDetails: (callback) =>
+    getItemDetails: (callback) =>       
         if @stream.length
             item = @stream[@cursor]
             callback null, item
+            
 
 this.FBRemixApp.Streams = {}
 this.FBRemixApp.Streams.Stream = Stream

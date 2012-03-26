@@ -8,58 +8,105 @@
 
     function Feed(FB) {
       this.fetchLinkDetails = __bind(this.fetchLinkDetails, this);
-      this.loadPictureAsync = __bind(this.loadPictureAsync, this);
+      this.loadLinkDetailsAsync = __bind(this.loadLinkDetailsAsync, this);
       this.fetchRelatedDetails = __bind(this.fetchRelatedDetails, this);
-      this.loadRelatedAsync = __bind(this.loadRelatedAsync, this);
-      this.fetchItemDetails = __bind(this.fetchItemDetails, this);
-      this.load = __bind(this.load, this);      Feed.__super__.constructor.call(this, FB);
+      this.loadRelatedDetailsAsync = __bind(this.loadRelatedDetailsAsync, this);
+      this.fetchFullItem = __bind(this.fetchFullItem, this);
+      this.loadFullItemAsync = __bind(this.loadFullItemAsync, this);
+      this.setItemDetails = __bind(this.setItemDetails, this);
+      this.onLoadMore = __bind(this.onLoadMore, this);
+      this.loadMore = __bind(this.loadMore, this);      Feed.__super__.constructor.call(this, FB);
+      this.events.loadMore = [];
     }
 
-    Feed.prototype.load = function(callback, currentItem) {
+    Feed.prototype.nextItem = function() {
+      Feed.__super__.nextItem.call(this);
+      if ((this.stream.length - this.cursor) < 10) return this.loadMore();
+    };
+
+    Feed.prototype.loadMore = function(callback) {
+      var url, _ref;
       var _this = this;
-      return this.FB.api('/me/home', function(response) {
-        var i, item, _i, _len, _ref, _ref2;
-        if ((_ref = response.data) != null ? _ref.length : void 0) {
-          _this.stream = response.data;
-          if (!(currentItem != null)) _this.cursor = 0;
+      url = (_ref = this.nextPage) != null ? _ref : '/me/home';
+      return this.FB.api(url, {
+        limit: 200
+      }, function(response) {
+        var func, i, item, _i, _j, _len, _len2, _ref2, _ref3, _ref4;
+        if ((_ref2 = response.data) != null ? _ref2.length : void 0) {
+          _this.stream.push.apply(_this.stream, response.data);
           i = 0;
-          _ref2 = _this.stream;
-          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-            item = _ref2[_i];
-            _this.fetchItemDetails(item);
-            if (currentItem != null) {
-              if (item.id === currentItem.id) _this.cursor = i;
-            }
+          _ref3 = response.data;
+          for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+            item = _ref3[_i];
+            _this.setItemDetails(item);
             i++;
           }
-          return callback();
+          _ref4 = _this.events.loadMore;
+          for (_j = 0, _len2 = _ref4.length; _j < _len2; _j++) {
+            func = _ref4[_j];
+            func();
+          }
+          callback();
+          if (response.paging != null) {
+            return _this.nextPage = response.paging.next;
+          }
         } else {
           return console.log('stream.data has no items.');
         }
       });
     };
 
-    Feed.prototype.fetchItemDetails = function(item) {
+    Feed.prototype.onLoadMore = function(func) {
+      return this.events.loadMore.push(func);
+    };
+
+    Feed.prototype.setItemDetails = function(item) {
       var ids, src;
+      item.loadFullItemAsync = this.loadFullItemAsync(item);
       item.from._data = {};
       item.from._data.picture = "https://graph.facebook.com/" + item.from.id + "/picture";
       item._data = {};
       if (item.type === 'photo') {
         if (item.picture != null) {
+          item._data.link = {};
           src = item.picture;
-          item._data.picture = src.replace('_s.', '_n.');
-          item._data.loadPictureAsync = this.loadPictureAsync(item);
+          item._data.link.picture = src.replace('_s.', '_n.');
+          item._data.loadLinkDetailsAsync = this.loadLinkDetailsAsync(item);
         } else {
-          item._data.loadPictureAsync = this.loadPictureAsync(item);
+          item._data.loadLinkDetailsAsync = this.loadLinkDetailsAsync(item);
         }
       }
       ids = item.id.split('_');
       if (ids.length === 2) {
-        return item.loadRelatedAsync = this.loadRelatedAsync(ids[1], item);
+        return item.loadRelatedDetailsAsync = this.loadRelatedDetailsAsync(ids[1], item);
       }
     };
 
-    Feed.prototype.loadRelatedAsync = function(id, item) {
+    Feed.prototype.loadFullItemAsync = function(item) {
+      var _this = this;
+      return function(callback) {
+        if (item._full != null) {
+          return callback();
+        } else {
+          return _this.fetchFullItem(item, callback);
+        }
+      };
+    };
+
+    Feed.prototype.fetchFullItem = function(item, callback) {
+      var _this = this;
+      return this.FB.api("/" + item.id, function(response) {
+        if ((!response) || (!response.id)) {
+          item._full = void 0;
+          return callback();
+        } else {
+          item._full = response;
+          return callback();
+        }
+      });
+    };
+
+    Feed.prototype.loadRelatedDetailsAsync = function(id, item) {
       var _this = this;
       return function(callback) {
         if (item._related != null) {
@@ -78,10 +125,10 @@
       });
     };
 
-    Feed.prototype.loadPictureAsync = function(item) {
+    Feed.prototype.loadLinkDetailsAsync = function(item) {
       var _this = this;
       return function(callback) {
-        if (item._data.picture != null) {
+        if (item._data.link != null) {
           return callback();
         } else {
           return _this.fetchLinkDetails(item, callback);
@@ -92,8 +139,11 @@
     Feed.prototype.fetchLinkDetails = function(item, callback) {
       var _this = this;
       return this.FB.api("/" + item.object_id, function(response) {
-        item._data.picture = response.images[0].source;
-        return callback();
+        if ((response.images != null) && response.images.length) {
+          item._data.link = {};
+          item._data.link.picture = response.images[0].source;
+          return callback();
+        }
       });
     };
 
