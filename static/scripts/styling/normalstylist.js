@@ -7,8 +7,9 @@
     __extends(NormalStylist, FBRemixApp.Styling.Stylist);
 
     NormalStylist.fontStyles = {
-      text: "'Droid Sans', sans-serif;",
-      heading: "'Droid Serif', serif"
+      text: "'Droid Sans', sans-serif",
+      heading: "'Droid Sans', sans-serif",
+      quote: "'Abril Fatface', cursive"
     };
 
     NormalStylist.palettes = {
@@ -16,7 +17,7 @@
       text: '#333',
       random: {
         white: {
-          dark: [["#403634", "#735D49", "#593939"]]
+          dark: [["#403634", "#735D49", "#593939"], ["#E83A25", "#004563", "#191B28"], ["#101A4D", "#0C426E", "#169896"]]
         }
       }
     };
@@ -33,7 +34,8 @@
         large: 24,
         larger: 40,
         largest: 64,
-        huge: 96
+        huge: 96,
+        ludicrous: 128
       };
       palette = NormalStylist.palettes;
       this.theme = {
@@ -71,7 +73,7 @@
           return elem.css('line-height', '0.9em');
         }
       });
-      return this.applyProperty(element, 'font-family-', function(elem, matchedType) {
+      return this.applyProperty(element, 'font-family', function(elem, matchedType) {
         return elem.css('font-family', _this.theme.fonts[matchedType]);
       });
     };

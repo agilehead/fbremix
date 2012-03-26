@@ -15,7 +15,7 @@
       var googleApiSrc;
       window.WebFontConfig = {
         google: {
-          families: ['Droid+Sans::latin', 'Droid+Serif::latin', 'Open+Sans+Condensed:700:latin', 'Bevan::latin', 'Ubuntu::latin']
+          families: ['Droid+Sans::latin', 'Abril+Fatface::latin', 'Bevan::latin']
         }
       };
       googleApiSrc = 'https:' === window.document.location.protocol ? 'https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js' : 'http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';

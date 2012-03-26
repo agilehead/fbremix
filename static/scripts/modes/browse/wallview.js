@@ -16,7 +16,9 @@
       $j('body').addClass('view-wall');
       this.container = this.mode.fbremix.container;
       this.container.html('');
-      this.container.append('<div class="left-pane span3"><ul id="actors-list"></ul></div>');
+      this.container.append('<div class="left-pane span3"><div class="options"></div><div id="actors-off-list"><ul></ul><div class="clear"></div></div><ul id="actors-list"></ul></div>');
+      this.options = this.container.find('.left-pane > .options');
+      this.actorsOffList = this.container.find('#actors-off-list ul');
       this.actorsList = this.container.find('#actors-list');
       this.container.append('<div class="right-pane span9 row-fluid" id="post-container"></div>');
       this.postContainer = this.container.find('#post-container');
@@ -24,7 +26,8 @@
       return this.stream.load(function() {
         return _this.stream.getItems(function(err, results) {
           _this.loadActors(results);
-          return _this.refreshActors();
+          _this.refreshActors();
+          return _this.displayItem();
         });
       });
     };
@@ -42,26 +45,25 @@
     };
 
     WallView.prototype.loadActors = function(results) {
-      var i, image, item, j, li, name, _i, _len, _results;
+      var i, image, item, li, name, _i, _len, _results;
       var _this = this;
       i = 0;
       _results = [];
       for (_i = 0, _len = results.length; _i < _len; _i++) {
         item = results[_i];
-        j = i;
-        this.actorsList.append("                <li style=\"display:none\">                    <div class=\"profile-pic span1\"><img /></div>                    <h2 class=\"actor\"></h2>                </li>");
+        this.actorsList.append("                <li style=\"display:none\">                    <div class=\"profile-pic\"><img /></div>                    <h2 class=\"actor\"></h2>                </li>");
         li = this.actorsList.children('li').last();
         li.data('position', i);
+        li.data('feedItem', item);
         this.mode.applyStyle(li);
         image = li.find('img').last();
         name = li.find('h2.actor').last();
-        image.attr('src', item.from.picture);
+        image.attr('src', item.from._data.picture);
         image.attr('alt', item.from.name);
         name.html("" + item.from.name);
         li.click((function(i) {
           return function() {
-            _this.stream.cursor = i;
-            return _this.refreshActors();
+            return _this.repositionStream(i);
           };
         })(i));
         _results.push(i = i + 1);
@@ -70,57 +72,186 @@
     };
 
     WallView.prototype.refreshActors = function() {
-      var lesser, shown;
+      var i, item, lesser, li, offList, offListFrom, shown, _i, _len;
       var _this = this;
       this.actorsList.children('li').removeClass('selected');
       lesser = this.actorsList.children('li').filter(function(index) {
-        console.log("" + index + " - " + _this.stream.cursor);
         return index < _this.stream.cursor;
       });
       lesser.hide();
+      this.actorsOffList.html('');
+      offListFrom = lesser.length < 20 ? 0 : lesser.length - 20;
+      offList = lesser.slice(offListFrom, lesser.length + 1 || 9e9);
+      if (offList.length) {
+        i = 0;
+        for (_i = 0, _len = offList.length; _i < _len; _i++) {
+          item = offList[_i];
+          item = $j(item);
+          this.actorsOffList.append("<li><img src=\"" + (item.data('feedItem').from._data.picture) + "\" /></li>");
+          li = this.actorsOffList.children('li').last();
+          li.click((function(i) {
+            return function() {
+              return _this.repositionStream(i);
+            };
+          })(i));
+          i++;
+        }
+      }
       shown = this.actorsList.children('li').not(lesser);
       shown.show();
       return shown.first().addClass('selected');
     };
 
+    WallView.prototype.repositionStream = function(i) {
+      this.stream.setCursor(i);
+      this.refreshActors();
+      return this.displayItem();
+    };
+
     WallView.prototype.displayItem = function() {
       var _this = this;
-      return;
+      this.mode.fbremix.newStylist();
       return this.stream.getItemDetails(function(err, item) {
-        var post, postHeader, processedMedia, profilePic, textHeader;
+        var post, postContent, postHeader, processedMedia, profilePic, textHeader;
         processedMedia = [];
         _this.postContainer.html('<div class="post"></div>');
         post = _this.postContainer.children('.post').last();
-        post.append("                <div class=\"post-header row-fluid\">                    <div class=\"profile-pic span4\">                        <img />                    </div>                    <div class=\"text span8\"></div>                </div>");
+        post.append("                <div class=\"post-header row-fluid\">                    <div class=\"profile-pic\">                        <img />                    </div>                    <div class=\"text span8\"></div>                </div>                <div class=\"post-content\"></div>");
         postHeader = post.children('.post-header').last();
         profilePic = postHeader.find('img');
-        item.getActor(function(actor) {
-          profilePic.attr('src', actor.getImage());
-          return profilePic.attr('alt', actor.name);
-        });
+        profilePic.attr('src', item.from._data.picture + "?type=large");
         textHeader = postHeader.find('.text');
-        return _this.displayHeading(item, textHeader, {
+        _this.displayHeading(item, textHeader, {
+          processedMedia: processedMedia
+        });
+        postContent = post.children('.post-content').last();
+        return _this.displayContent(item, postContent, {
           processedMedia: processedMedia
         });
       });
     };
 
     WallView.prototype.displayHeading = function(item, renderTo, context) {
+      var actorElem, story, _ref, _ref2;
+      renderTo.append("<h2 class=\"font-size-largest\"></h2>");
+      actorElem = renderTo.children('h2').last();
+      actorElem.html(item.from.name);
+      this.mode.applyStyle(actorElem);
+      if (item.story != null) {
+        story = $j.trim(item.story.replace(item.from.name, ''));
+        if (story) {
+          renderTo.append("<div class=\"story font-size-larger color-random\">" + story + "</div>");
+          this.mode.applyStyle(renderTo.find('.story').last());
+        }
+      }
+      if (((_ref = item.to) != null ? (_ref2 = _ref.data) != null ? _ref2.length : void 0 : void 0) && item.to.data[0].name) {
+        renderTo.append("<div class=\"story font-size-larger color-random\">to " + item.to.data[0].name + "</div>");
+        return this.mode.applyStyle(renderTo.find('.story').last());
+      }
+    };
+
+    WallView.prototype.displayContent = function(item, renderTo, context) {
+      var contentText, fontSize, messageElem;
       var _this = this;
-      return item.getHeading(function(heading) {
-        return item.getActor(function(actor) {
-          var actorElem, message;
-          renderTo.append("<h2 class=\"font-size-largest\"></h2>");
-          actorElem = renderTo.children('h2').last();
-          actorElem.html(actor.name);
-          _this.mode.applyStyle(actorElem);
-          message = $j.trim(heading.replace(actor.name, ''));
-          if (message) {
-            renderTo.append("<div class=\"message font-size-larger color-random\">" + message + "</div>");
-            return _this.mode.applyStyle(renderTo.find('.message').last());
+      contentText = item.message;
+      if (contentText != null) {
+        if (this.isLink(contentText)) {
+          renderTo.append("<blockquote class=\"message font-family-quote font-size-larger\">" + contentText + "</blockquote>");
+          messageElem = renderTo.children('.message').last();
+          if (this.getLinkType(contentText) === 'image') {
+            renderTo.append("<div class=\"picture\"><img src=\"" + contentText + "\" /></div>");
+          }
+        } else {
+          renderTo.append("<blockquote class=\"message font-family-quote\">" + contentText + "</blockquote>");
+          messageElem = renderTo.children('.message').last();
+          fontSize = this.getFontSize(contentText);
+          messageElem.addClass(fontSize);
+        }
+        if (FBRemixApp.Utils.random(2) === 1) messageElem.addClass('color-random');
+        this.mode.applyStyle(messageElem);
+      }
+      if (item._data.loadPictureAsync != null) {
+        item._data.loadPictureAsync(function() {
+          return renderTo.append("<div class=\"picture\"><img src=\"" + item._data.picture + "\" /></div>");
+        });
+      }
+      if (item.loadRelatedAsync != null) {
+        return item.loadRelatedAsync(function() {
+          var _ref;
+          if ((_ref = item._related.images) != null ? _ref.length : void 0) {
+            return renderTo.append("<div class=\"picture\"><img src=\"" + item._related.images[0].source + "\" /></div>");
           }
         });
-      });
+      }
+    };
+
+    WallView.prototype.isLink = function(text) {
+      return text.split(' ').length === 1 && /^http/.test(text);
+    };
+
+    WallView.prototype.getLinkType = function(url) {
+      var ext, r, res;
+      r = /https?:\/\/.*(.jpg$)/;
+      res = url.match(r);
+      if (res) {
+        ext = res[1].toLowerCase();
+        if (ext === '.jpg' || '.png' || '.gif' || '.bmp') return 'image';
+      }
+    };
+
+    WallView.prototype.getMedia = function(url) {
+      var embed, ext, r, res, videoId;
+      r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/;
+      res = url.match(r);
+      if (res) {
+        videoId = res[1];
+        embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></div>";
+        return {
+          content: embed,
+          type: 'youtube',
+          url: url,
+          key: videoId
+        };
+      }
+      r = /https?:\/\/.*(.jpg$)/;
+      res = url.match(r);
+      if (res) {
+        ext = res[1].toLowerCase();
+        if (ext === '.jpg' || '.png' || '.gif' || '.bmp') {
+          return {
+            content: "<div class=\"media\"><img src=\"" + url + "\" /></div>",
+            type: 'image',
+            url: url,
+            key: url
+          };
+        }
+      }
+      return {
+        content: "<a href=\"" + url + "\">" + url + "</a>",
+        type: 'link',
+        url: url,
+        key: url
+      };
+    };
+
+    WallView.prototype.getFontSize = function(text) {
+      var fontSizeClass;
+      if (text.length < 6) {
+        fontSizeClass = 'font-size-ludicrous';
+      } else if (text.length < 60) {
+        fontSizeClass = 'font-size-huge';
+      } else if (text.length < 200) {
+        fontSizeClass = 'font-size-largest';
+      } else if (text.length < 500) {
+        fontSizeClass = 'font-size-larger';
+      } else {
+        fontSizeClass = 'font-size-medium';
+      }
+      return fontSizeClass;
+    };
+
+    WallView.prototype.getFontFamily = function(text, type) {
+      if (type === 'quote') if (text.length < 300) return 'font-family-quote';
       /*
               #Rest of everything
               post.append "<div class=\"post-content span12 row-fluid\"></div>"

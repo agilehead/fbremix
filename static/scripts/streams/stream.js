@@ -1,10 +1,13 @@
 (function() {
   var Stream;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Stream = (function() {
 
     function Stream(FB) {
       this.FB = FB;
+      this.getItemDetails = __bind(this.getItemDetails, this);
+      this.getItems = __bind(this.getItems, this);
     }
 
     Stream.prototype.nextItem = function() {
@@ -16,11 +19,23 @@
     };
 
     Stream.prototype.setCursor = function(i) {
-      return this.cursor = i;
+      if (i >= 0 && i < this.stream.length) return this.cursor = i;
     };
 
-    Stream.prototype.getItem = function() {
-      if (this.stream.length) return this.stream[this.cursor];
+    Stream.prototype.getItems = function(callback) {
+      return callback(null, this.stream);
+    };
+
+    Stream.prototype.getItem = function(callback) {
+      if (this.stream.length) return callback(this.stream[this.cursor]);
+    };
+
+    Stream.prototype.getItemDetails = function(callback) {
+      var item;
+      if (this.stream.length) {
+        item = this.stream[this.cursor];
+        return callback(null, item);
+      }
     };
 
     return Stream;

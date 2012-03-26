@@ -9,7 +9,7 @@
       this.window = window;
       this.window.$j = jQuery.noConflict();
       this.cache = new FBRemixApp.Cache(this);
-      this.stylist = new FBRemixApp.Styling.NormalStylist();
+      this.newStylist();
       $j(document).bind('keydown', 'left', function() {
         return _this.previousItem();
       });
@@ -85,6 +85,10 @@
 
     FBRemix.prototype.refresh = function() {
       return this.mode.refresh();
+    };
+
+    FBRemix.prototype.newStylist = function() {
+      return this.stylist = new FBRemixApp.Styling.NormalStylist();
     };
 
     return FBRemix;

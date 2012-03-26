@@ -14,13 +14,23 @@ class Stream
 
     
     setCursor: (i) ->
-        @cursor = i
+        if i >= 0 and i < @stream.length
+            @cursor = i
 
 
-    getItem: () ->
+    getItems: (callback) =>
+        callback null, @stream
+
+
+    getItem: (callback) ->
         if @stream.length
-            return @stream[@cursor]
+            callback @stream[@cursor]
 
+
+    getItemDetails: (callback) =>
+        if @stream.length
+            item = @stream[@cursor]
+            callback null, item
 
 this.FBRemixApp.Streams = {}
 this.FBRemixApp.Streams.Stream = Stream

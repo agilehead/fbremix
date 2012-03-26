@@ -9,15 +9,18 @@ class Stylist
             elem = jQuery(elem)
             if not elem.hasClass "#{className}-applied"                
                 classes = elem.attr('class').split(/\s+/)
-                matchedType = (c.split('-')[c.split('-').length-1] for c in classes when c.startsWith("#{className}-"))[0]
+                matchedType = (c.split('-')[c.split('-').length-1] for c in classes when new RegExp("^#{className}\-").test c)[0]
                 elem.addClass "#{className}-applied"
                 func elem, matchedType
+        
         
     getResponsiveFontSize: (size) ->
         return size + 'px'
 
+
     #http://jsfiddle.net/xLF38/
     # We don't use this right now, since facebook images are mostly cross domain (served via akamai)
+    # Check CORS issues with drawImage.
     getDominantColor: (imgEl) ->
         blockSize = 5 #only visit every 5 pixels
         defaultRGB = {r:0,g:0,b:0} #for non-supporting envs

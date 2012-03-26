@@ -1,8 +1,9 @@
 class NormalStylist extends FBRemixApp.Styling.Stylist
     
     @fontStyles = {                
-        text: "'Droid Sans', sans-serif;", 
-        heading: "'Droid Serif', serif"
+        text: "'Droid Sans', sans-serif", 
+        heading: "'Droid Sans', sans-serif",
+        quote: "'Abril Fatface', cursive"
     }
     
     @palettes = {
@@ -11,7 +12,9 @@ class NormalStylist extends FBRemixApp.Styling.Stylist
         random: {
             white: {
                 dark: [
-                    [ "#403634", "#735D49", "#593939" ]
+                    [ "#403634", "#735D49", "#593939" ],
+                    [ "#E83A25", "#004563", "#191B28" ],
+                    [ "#101A4D", "#0C426E", "#169896" ]
                 ]
             }
         }
@@ -30,7 +33,8 @@ class NormalStylist extends FBRemixApp.Styling.Stylist
             large: 24,
             larger: 40
             largest: 64,
-            huge: 96
+            huge: 96,
+            ludicrous: 128
         }
             
         palette = NormalStylist.palettes
@@ -65,7 +69,7 @@ class NormalStylist extends FBRemixApp.Styling.Stylist
                                                 else
                                                     elem.css 'line-height', '0.9em'
         
-        @applyProperty element, 'font-family-', (elem, matchedType) =>
+        @applyProperty element, 'font-family', (elem, matchedType) =>
                                         elem.css 'font-family', @theme.fonts[matchedType]
 
         

@@ -9,10 +9,8 @@ class Loader
         window.WebFontConfig = google: { 
             families: [ 
                 'Droid+Sans::latin', 
-                'Droid+Serif::latin', 
-                'Open+Sans+Condensed:700:latin', 
+                'Abril+Fatface::latin', 
                 'Bevan::latin',
-                'Ubuntu::latin'
             ]}
         googleApiSrc = if 'https:' == window.document.location.protocol then 'https://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js' else 'http://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js'
         @loadScript googleApiSrc, { async: 'true' }

@@ -22,7 +22,7 @@
             _results2 = [];
             for (_j = 0, _len2 = classes.length; _j < _len2; _j++) {
               c = classes[_j];
-              if (c.startsWith("" + className + "-")) {
+              if (new RegExp("^" + className + "\-").test(c)) {
                 _results2.push(c.split('-')[c.split('-').length - 1]);
               }
             }

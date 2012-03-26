@@ -4,7 +4,7 @@ class FBRemix
         @window = window
         @window.$j = jQuery.noConflict()
         @cache = new FBRemixApp.Cache @
-        @stylist = new FBRemixApp.Styling.NormalStylist()
+        @newStylist()        
         
         #set up keybindings
         $j(document).bind('keydown', 'left', () => @previousItem())
@@ -72,5 +72,8 @@ class FBRemix
     refresh: () ->
         @mode.refresh()
                 
+    newStylist: () ->
+        @stylist = new FBRemixApp.Styling.NormalStylist()
+
 
 this.FBRemixApp.FBRemix = FBRemix
