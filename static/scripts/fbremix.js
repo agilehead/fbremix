@@ -25,6 +25,7 @@
     FBRemix.prototype.setupAuthLinks = function() {
       var _this = this;
       $j('#auth-loginlink').click(function() {
+        $j('.hide-quick').hide();
         return _this.FB.login((function() {}), {
           scope: 'read_stream'
         });

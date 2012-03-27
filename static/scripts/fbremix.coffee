@@ -16,6 +16,7 @@ class FBRemix
     setupAuthLinks: () ->
         #respond to clicks on the login and logout links
         $j('#auth-loginlink').click () =>
+            $j('.hide-quick').hide()
             @FB.login (() ->), { scope: 'read_stream' } 
         $j('#auth-logoutlink').click () =>
             @FB.logout()
