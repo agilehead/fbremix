@@ -20,7 +20,7 @@
       this.options = this.container.find('.left-pane > .options');
       this.actorsOffList = this.container.find('#actors-off-list ul');
       this.actorsList = this.container.find('#actors-list');
-      this.container.append('<div class="right-pane span9 row-fluid" id="post-container"></div>');
+      this.container.append('<div class="span9"><div class="right-pane row-fluid" id="post-container"></div></div>');
       this.postContainer = this.container.find('#post-container');
       this.stream = new FBRemixApp.Streams.Feed(this.mode.fbremix.FB);
       this.stream.onLoadMore(function() {
@@ -171,7 +171,8 @@
               type: 'image',
               url: contentText
             })) {
-              renderTo.append("<div class=\"picture\"><img src=\"" + contentText + "\" /></div>");
+              renderTo.append("<div class=\"picture span11\"><img src=\"" + contentText + "\" /></div>");
+              renderTo.append("<div class=\"clear\"></div>");
               context.processedMedia.push({
                 type: 'image',
                 url: contentText
@@ -193,7 +194,8 @@
             type: 'image',
             url: contentText
           })) {
-            renderTo.append("<div class=\"picture\"><img src=\"" + item._data.link.picture + "\" /></div>");
+            renderTo.append("<div class=\"picture span11\"><img src=\"" + item._data.link.picture + "\" /></div>");
+            renderTo.append("<div class=\"clear\"></div>");
             return context.processedMedia.push({
               type: 'image',
               url: contentText
@@ -209,7 +211,8 @@
               type: 'image',
               url: contentText
             })) {
-              renderTo.append("<div class=\"picture\"><img src=\"" + item._related.images[0].source + "\" /></div>");
+              renderTo.append("<div class=\"picture span11\"><img src=\"" + item._related.images[0].source + "\" /></div>");
+              renderTo.append("<div class=\"clear\"></div>");
               return context.processedMedia.push({
                 type: 'image',
                 url: contentText

@@ -26,7 +26,7 @@ class FBRemix
 
         
     onAuthStatusChange: (response) ->
-        if (response.authResponse) 
+        if (response.authResponse)
             #user has auth'd your app and is logged into Facebook
             @FB.api '/me', (me) ->
                 if (me.name)                

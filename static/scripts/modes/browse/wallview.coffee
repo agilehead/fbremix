@@ -14,7 +14,7 @@ class WallView
         @actorsOffList = @container.find '#actors-off-list ul'
         @actorsList = @container.find '#actors-list'
         
-        @container.append '<div class="right-pane span9 row-fluid" id="post-container"></div>'
+        @container.append '<div class="span9"><div class="right-pane row-fluid" id="post-container"></div></div>'
         @postContainer = @container.find '#post-container'
 
         @stream = new FBRemixApp.Streams.Feed(@mode.fbremix.FB)
@@ -172,7 +172,8 @@ class WallView
 
                 if @getLinkType(contentText) == 'image'
                     if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
-                        renderTo.append "<div class=\"picture\"><img src=\"#{contentText}\" /></div>"
+                        renderTo.append "<div class=\"picture span11\"><img src=\"#{contentText}\" /></div>"
+                        renderTo.append "<div class=\"clear\"></div>"
                         context.processedMedia.push { type: 'image', url: contentText }
                     
             else
@@ -191,7 +192,8 @@ class WallView
         if item._data.loadLinkDetailsAsync?
             item._data.loadLinkDetailsAsync () =>
                 if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
-                    renderTo.append "<div class=\"picture\"><img src=\"#{item._data.link.picture}\" /></div>"
+                    renderTo.append "<div class=\"picture span11\"><img src=\"#{item._data.link.picture}\" /></div>"
+                    renderTo.append "<div class=\"clear\"></div>"
                     context.processedMedia.push { type: 'image', url: contentText }
                     
                     
@@ -201,7 +203,8 @@ class WallView
             item.loadRelatedDetailsAsync () =>
                 if item._related.images?.length
                     if not @isProcessed(context.processedMedia, { type: 'image', url: contentText })
-                        renderTo.append "<div class=\"picture\"><img src=\"#{item._related.images[0].source}\" /></div>"
+                        renderTo.append "<div class=\"picture span11\"><img src=\"#{item._related.images[0].source}\" /></div>"
+                        renderTo.append "<div class=\"clear\"></div>"
                         context.processedMedia.push { type: 'image', url: contentText }
         
         if item.type == 'video'

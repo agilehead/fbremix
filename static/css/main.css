@@ -14,7 +14,7 @@ body.fbremix { font-family: 'Droid Sans', 'Arial', sans-serif; background: #fff 
     ===========
 */
 .fbremix.mode-browse .left-pane { float: left; min-height: 100%; max-width: 292px; margin: -96px 0 0 -20px !important; padding-top: 128px; background: #e6e6e6 }
-.fbremix.mode-browse .right-pane { float: left; margin-left: 0; margin: -64px 0 0 48px !important }
+.fbremix.mode-browse .right-pane { float: left; margin-left: 0; margin: -96px 0 0 0 !important; padding-top: 32px; }
 
 /* Wall View */
 .fbremix.mode-browse.view-wall #actors-list { margin-left: 0 }
@@ -29,12 +29,16 @@ body.fbremix { font-family: 'Droid Sans', 'Arial', sans-serif; background: #fff 
         .fbremix.mode-browse.view-wall #actors-off-list li img { width: 36px; height: 36px; }
         
 .fbremix.mode-browse.view-wall #post-container { }
+
     .fbremix.mode-browse.view-wall #post-container .post-header .profile-pic { text-align: right; max-width: 200px; float: left; }
     .fbremix.mode-browse.view-wall #post-container .post-header .profile-pic img { max-height: 180px; max-width: 180px; }
     .fbremix.mode-browse.view-wall #post-container .post-header .text .story { margin-top: 12px; font-weight: bold }
-    .fbremix.mode-browse.view-wall #post-container .post-content { margin-top: 12px }
 
-.fbremix.mode-browse.view-wall .comments-container { margin-top: 20px; }
-    .fbremix.mode-browse.view-wall .comments-container ul li { list-style: none; margin-bottom: 12px; }
-        .fbremix.mode-browse.view-wall .comments-container ul li h6 { font-size: 14px }    
-        .fbremix.mode-browse.view-wall .comments-container ul li .message { font-size: 12px }        
+    .fbremix.mode-browse.view-wall #post-container .post-content { margin-top: 12px }
+        .fbremix.mode-browse.view-wall #post-container .post-content .picture { margin-left: 0 }
+            .fbremix.mode-browse.view-wall #post-container .post-content .picture > img { max-width: 100% }
+
+    .fbremix.mode-browse.view-wall #post-container .comments-container { margin-top: 32px; }
+        .fbremix.mode-browse.view-wall #post-container .comments-container ul li { list-style: none; margin-bottom: 12px; }
+            .fbremix.mode-browse.view-wall #post-container .comments-container ul li h6 { font-size: 14px }    
+            .fbremix.mode-browse.view-wall #post-container .comments-container ul li .message { font-size: 12px }        
